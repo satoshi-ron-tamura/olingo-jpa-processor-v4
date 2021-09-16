@@ -55,6 +55,7 @@ import com.sap.olingo.jpa.metadata.core.edm.mapper.api.JPAPath;
 import com.sap.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import com.sap.olingo.jpa.processor.core.api.JPAODataCRUDContextAccess;
 import com.sap.olingo.jpa.processor.core.api.JPAODataClaimProvider;
+import com.sap.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import com.sap.olingo.jpa.processor.core.api.JPAODataPage;
 import com.sap.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import com.sap.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
@@ -333,6 +334,10 @@ public abstract class JPAAbstractJoinQuery extends JPAAbstractQuery implements J
       }
     }
     debugger.stopRuntimeMeasurement(handle);
+    JPAODataDatabaseProcessor databaseProcessor = context.getDatabaseProcessor();
+    if (databaseProcessor != null) {
+      return databaseProcessor.customizeSelection(selections);
+    }
     return selections;
   }
 
