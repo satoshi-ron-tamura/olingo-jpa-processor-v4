@@ -1,10 +1,8 @@
 package com.sap.olingo.jpa.processor.core.api;
 
-import java.util.Collection;
+import java.util.Set;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.From;
 
 import com.sap.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import com.sap.olingo.jpa.metadata.core.edm.mapper.api.JPAPath;
@@ -17,12 +15,10 @@ import com.sap.olingo.jpa.processor.core.database.JPAODataDatabaseTableFunction;
  *
  */
 public interface JPAODataDatabaseProcessor extends JPAODataDatabaseSearch, JPAODataDatabaseTableFunction {
-  default Collection<JPAPath> customizeSelectionPath(
-      final CriteriaBuilder cb,
+  default Set<JPAPath> customizeSelectionPath(
       final CriteriaQuery<?> cq,
-      final From<?, ?> root,
       final JPAEntityType entityType,
-      final Collection<JPAPath> selectionPath
+      final Set<JPAPath> selectionPath
   ) {
       return selectionPath;
   }
