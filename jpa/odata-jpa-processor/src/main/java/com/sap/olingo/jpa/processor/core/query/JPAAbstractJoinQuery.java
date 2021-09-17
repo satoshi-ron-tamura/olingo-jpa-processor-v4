@@ -324,9 +324,20 @@ public abstract class JPAAbstractJoinQuery extends JPAAbstractQuery implements J
 
     final int handle = debugger.startRuntimeMeasurement(this, "createSelectClause");
     final List<Selection<?>> selections = new ArrayList<>();
+    Collection<JPAPath> properties = requestedProperties;
+    JPAODataDatabaseProcessor databaseProcessor = context.getDatabaseProcessor();
+    if (databaseProcessor != null) {
+        properties = databaseProcessor.customizeSelectionPath(
+            cb,
+            this.cq,
+            target,
+            jpaEntity,
+            properties
+        );
+    }
 
     // Build select clause
-    for (final JPAPath jpaPath : requestedProperties) {
+    for (final JPAPath jpaPath : properties) {
       if (jpaPath.isPartOfGroups(groups)) {
         final Path<?> p = ExpressionUtil.convertToCriteriaPath(joinTables, target, jpaPath.getPath());
         p.alias(jpaPath.getAlias());
@@ -334,10 +345,6 @@ public abstract class JPAAbstractJoinQuery extends JPAAbstractQuery implements J
       }
     }
     debugger.stopRuntimeMeasurement(handle);
-    JPAODataDatabaseProcessor databaseProcessor = context.getDatabaseProcessor();
-    if (databaseProcessor != null) {
-      return databaseProcessor.customizeSelection(selections);
-    }
     return selections;
   }
 
