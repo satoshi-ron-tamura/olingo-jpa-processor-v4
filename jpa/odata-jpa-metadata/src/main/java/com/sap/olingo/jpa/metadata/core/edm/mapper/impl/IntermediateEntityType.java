@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,6 +25,7 @@ import javax.persistence.metamodel.Type;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.commons.api.edm.provider.CsdlAnnotation;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
+import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
@@ -294,9 +296,44 @@ final class IntermediateEntityType<T> extends IntermediateStructuredType<T> impl
 
       edmEntityType = new CsdlEntityType();
       edmEntityType.setName(getExternalName());
-      edmEntityType.setProperties(extractEdmModelElements(declaredPropertiesList));
-      edmEntityType.setNavigationProperties(extractEdmModelElements(declaredNaviPropertiesList));
-      edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
+
+      final List<CsdlProperty> extractedProperties = extractEdmModelElements(declaredPropertiesList);
+      final Map<String, String> nameMap = new HashMap<>();
+      for (Map.Entry<String, IntermediateProperty> x : declaredPropertiesList.entrySet()) {
+        IntermediateProperty v = x.getValue();
+        nameMap.put(v.getExternalName(), v.getInternalName());
+      }
+      final List<CsdlProperty> properties =
+        postProcessor.customizeProperties(
+          jpaManagedType,
+          extractedProperties,
+          nameMap
+      );
+      edmEntityType.setProperties(properties);
+
+      final List<CsdlNavigationProperty> extractedNavProperties = extractEdmModelElements(declaredNaviPropertiesList);
+      final Map<String, String> navNameMap = new HashMap<>();
+      for (Map.Entry<String, IntermediateNavigationProperty> x : declaredNaviPropertiesList.entrySet()) {
+        IntermediateNavigationProperty v = x.getValue();
+        navNameMap.put(v.getExternalName(), v.getInternalName());
+      }
+      final List<CsdlNavigationProperty> navProperties =
+        postProcessor.customizeNavigationProperties(
+          jpaManagedType,
+          extractedNavProperties,
+          navNameMap
+      );
+      edmEntityType.setNavigationProperties(navProperties);
+
+      final List<CsdlPropertyRef> extractedKey = extractEdmKeyElements(declaredPropertiesList);
+      final List<CsdlPropertyRef> keyProperties =
+        postProcessor.customizeKey(
+          jpaManagedType,
+          extractedKey,
+          nameMap
+      );
+      edmEntityType.setKey(keyProperties);
+
       edmEntityType.setAbstract(determineAbstract());
       edmEntityType.setBaseType(determineBaseType());
       edmEntityType.setHasStream(determineHasStream());
